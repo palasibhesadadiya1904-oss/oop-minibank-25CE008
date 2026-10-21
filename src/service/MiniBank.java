@@ -259,8 +259,62 @@ long expectedBalance = (long) threadCount * times * amount;
 System.out.println("Expected balance: Rs. " + expectedBalance);
 System.out.println("Actual balance: Rs. " + sharedAccount.getBalance());
 
-        int choice;
+System.out.println("\n----- Transaction Processor -----");
 
+SavingsAccount batchAccount =
+        new SavingsAccount("Batch User", 1000, 0);
+
+TransactionProcessor processor = new TransactionProcessor();
+
+for (int i = 0; i < 10; i++) {
+    processor.submit(new TransactionTask(batchAccount, 100, true));
+}
+
+for (int i = 0; i < 5; i++) {
+    processor.submit(new TransactionTask(batchAccount, 50, false));
+}
+
+processor.stop();
+
+System.out.println("Expected balance: Rs. 1750");
+System.out.println("Actual balance: Rs. " + batchAccount.getBalance());
+
+System.out.println("\n----- Deadlock Prevention Test -----");
+
+Thread transfer1 = new Thread(() -> {
+    try {
+        Account.transferSafely(acc1, acc2, 10);
+        out.println("Rahul to Priya transfer completed.");
+    } catch (BankException e) {
+        out.println("Transfer failed: " + e.getMessage());
+    }
+}, "Transfer-1");
+
+Thread transfer2 = new Thread(() -> {
+    try {
+        Account.transferSafely(acc2, acc1, 10);
+        out.println("Priya to Rahul transfer completed.");
+    } catch (BankException e) {
+        out.println("Transfer failed: " + e.getMessage());
+    }
+}, "Transfer-2");
+
+transfer1.start();
+transfer2.start();
+
+try {
+    transfer1.join();
+    transfer2.join();
+} catch (InterruptedException e) {
+    Thread.currentThread().interrupt();
+    out.println("Main thread interrupted.");
+}
+
+out.println("Both transfer threads finished.");
+
+        int choice;
+System.out.println("\n----- Producer Consumer -----");
+ProducerConsumerDemo.runDemo();
         do {
             out.println("\n===== MINIBANK MENU =====");
             out.println("1. Open Account");

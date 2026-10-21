@@ -19,6 +19,37 @@ public abstract class Account implements Transactable, InterestBearing  {
     private boolean active;
 
     private static long accountCounter = 0;
+    public static void transferSafely(Account from, Account to, long amount)
+        throws BankException {
+
+    Account first = from.accountNumber.compareTo(to.accountNumber) < 0
+            ? from : to;
+
+    Account second = first == from ? to : from;
+
+    synchronized (first) {
+        synchronized (second) {
+            if (amount <= 0) {
+                throw new InvalidAmountException(
+                        "Transfer amount must be greater than zero.");
+            }
+
+            if (from == to) {
+                return;
+            }
+
+            if (!from.canWithdraw(amount)) {
+                throw new InsufficientFundsException(
+                        "Insufficient funds for transfer.",
+                        Math.max(0, amount - from.getBalance()));
+            }
+
+            from.balance -= amount;
+            to.balance += amount;
+        }
+    }
+}
+
 
     private static String generateAccountNumber() {
         accountCounter++;
@@ -130,3 +161,4 @@ public   synchronized  boolean withdraw(long amount)
         return Objects.hash(accountNumber);
     }
 }
+
