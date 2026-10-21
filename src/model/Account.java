@@ -2,6 +2,9 @@ package model;
 import model.annotation.Id;
 import model.annotation.Positive;
 import java.util.Objects;
+import exception.BankException;
+import exception.InsufficientFundsException;
+import exception.InvalidAmountException;
 
 
 public abstract class Account implements Transactable, InterestBearing  {
@@ -23,6 +26,7 @@ public abstract class Account implements Transactable, InterestBearing  {
     }
 
     public Account(String ownerName, long balance) {
+
         this.accountNumber = generateAccountNumber();
         this.ownerName = ownerName;
         this.balance = balance;
@@ -32,25 +36,57 @@ public abstract class Account implements Transactable, InterestBearing  {
     public Account(String ownerName) {
         this(ownerName, 0);
     }
+public void transfer(Account to, long amount) throws BankException {
 
+    try {
+        if (to == null) {
+            throw new BankException("Destination account not found.");
+        }
+
+        withdraw(amount);
+        to.deposit(amount);
+
+    } catch (BankException e) {
+        throw e;
+
+    } finally {
+        System.out.println("Transfer operation completed.");
+    }
+}
     public abstract double interestRate();
 
     public abstract boolean canWithdraw(long amount);
 
-    public void deposit(long amount) {
-        if (amount > 0) {
-            balance += amount;
-        }
+   @Override
+public void deposit(long amount) throws InvalidAmountException {
+    if (amount <= 0) {
+        throw new InvalidAmountException(
+                "Deposit amount must be greater than zero.");
     }
 
-    public boolean withdraw(long amount) {
-        if (canWithdraw(amount)) {
-            balance -= amount;
-            return true;
-        }
+    balance += amount;
+}
 
-        return false;
+@Override
+public boolean withdraw(long amount)
+        throws InsufficientFundsException, InvalidAmountException {
+
+    if (amount <= 0) {
+        throw new InvalidAmountException(
+                "Withdrawal amount must be greater than zero.");
     }
+
+    if (!canWithdraw(amount)) {
+        long shortfall = amount - balance;
+
+        throw new InsufficientFundsException(
+                "Insufficient funds. Required amount: Rs. " + amount,
+                Math.max(0, shortfall));
+    }
+
+    balance -= amount;
+    return true;
+} 
 
     public String getAccountNumber() {
         return accountNumber;

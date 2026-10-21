@@ -1,5 +1,10 @@
+
 package model;
-public class SavingsAccount extends Account implements Premium  {
+
+import exception.InsufficientFundsException;
+import exception.InvalidAmountException;
+
+public class SavingsAccount extends Account implements Premium {
 
     private long minBalance;
 
@@ -15,6 +20,13 @@ public class SavingsAccount extends Account implements Premium  {
 
     @Override
     public boolean canWithdraw(long amount) {
-        return amount > 0 && getBalance() - amount >= minBalance;
+        return getBalance() - amount >= minBalance;
+    }
+
+    @Override
+    public boolean withdraw(long amount)
+            throws InsufficientFundsException, InvalidAmountException {
+
+        return super.withdraw(amount);
     }
 }
