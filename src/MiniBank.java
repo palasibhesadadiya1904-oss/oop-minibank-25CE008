@@ -24,9 +24,9 @@ public class MiniBank {
         System.out.println("Branch: " + bank.branch());
         System.out.println("==================================");
 
-        Account acc1 = new Account("Rahul", 1000);
-        Account acc2 = new Account("Priya");
-        Account acc3 = new Account("Amit", 2000);
+        SavingsAccount acc1 = new SavingsAccount("Rahul", 1000, 500);
+        CurrentAccount acc2 = new CurrentAccount("Priya", 0, 2000);
+        FixedDepositAccount acc3 = new FixedDepositAccount("Amit", 2000);
 
         Account[] accounts = {acc1, acc2, acc3};
 
@@ -39,15 +39,31 @@ public class MiniBank {
 
         for (Account acc : accounts) {
             System.out.println(acc);
+            System.out.println("Interest Rate: " + acc.interestRate() + "%");
+            System.out.println();
         }
 
-        System.out.println("\n----- Account Comparison -----");
+        System.out.println("----- Account Comparison -----");
         System.out.println("Are acc1 and acc2 equal? " + acc1.equals(acc2));
+
+        System.out.println("\n----- Withdrawal Tests -----");
+
+        System.out.println("Rahul withdraws Rs. 2000: "
+                + acc1.withdraw(2000));
+
+        System.out.println("Priya withdraws Rs. 2500: "
+                + acc2.withdraw(2500));
+
+        System.out.println("Amit withdraws Rs. 500: "
+                + acc3.withdraw(500));
 
         System.out.println("\n----- instanceof Check -----");
 
-        if (acc1 instanceof Account) {
-            System.out.println("acc1 is an Account object.");
+        for (Account acc : accounts) {
+            if (acc instanceof SavingsAccount savings) {
+                System.out.println(savings.getOwnerName()
+                        + " has a Savings Account.");
+            }
         }
 
         System.out.println("\n----- Customer and Address -----");
