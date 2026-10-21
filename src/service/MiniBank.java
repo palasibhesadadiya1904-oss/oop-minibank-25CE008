@@ -1,5 +1,20 @@
+package service;
+
 
 import java.util.Scanner;
+import model.Account;
+import model.Customer;
+import model.SavingsAccount;
+import model.CurrentAccount;
+import model.FixedDepositAccount;
+import model.Premium;
+import util.Validator;
+import util.Command;
+import util.CommandParser;
+import util.StatementFormatter;
+import util.WithdrawRule;
+
+import static java.lang.System.out;
 
 public class MiniBank {
 
@@ -114,6 +129,39 @@ public class MiniBank {
         System.out.println("Amount: " + command.amount());
 
         System.out.println("\n" + StatementFormatter.buildStatement(acc1));
+        
+System.out.println("\n----- Yearly Interest -----");
+
+for (Account acc : accounts) {
+    System.out.println(acc.getOwnerName()
+            + ": Rs. " + acc.yearlyInterest());
+}
+
+System.out.println("\n----- Withdraw Rule -----");
+
+WithdrawRule rule1 = new WithdrawRule() {
+    @Override
+    public boolean allow(Account account, long amount) {
+        return account.canWithdraw(amount);
+    }
+};
+
+WithdrawRule rule2 =
+        (account, amount) -> account.canWithdraw(amount);
+
+System.out.println("Anonymous class: "
+        + rule1.allow(acc1, 200));
+
+System.out.println("Lambda expression: "
+        + rule2.allow(acc1, 200));
+
+System.out.println("\n----- Premium Check -----");
+
+for (Account acc : accounts) {
+    if (acc instanceof Premium) {
+        System.out.println(acc.getOwnerName() + " has Premium status.");
+    }
+}
 
         int choice;
 
