@@ -2,6 +2,7 @@ package service;
 
 
 import java.util.Scanner;
+import util.AnnotationValidator;
 import model.Account;
 import model.Customer;
 import model.SavingsAccount;
@@ -163,6 +164,20 @@ for (Account acc : accounts) {
     }
 }
 
+        System.out.println("\n----- Annotation Validation -----");
+
+SavingsAccount invalidAccount =
+        new SavingsAccount("Test User", -500, 100);
+
+String[] errors = AnnotationValidator.validate(invalidAccount);
+
+if (errors.length == 0) {
+    System.out.println("No validation errors.");
+} else {
+    for (String error : errors) {
+        System.out.println(error);
+    }
+}
         int choice;
 
         do {
