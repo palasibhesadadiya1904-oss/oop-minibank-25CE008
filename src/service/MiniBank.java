@@ -224,6 +224,40 @@ out.println("Priya's balance: Rs. " + acc2.getBalance());
         } catch (BankException e) {
             out.println("Transfer failed: " + e.getMessage());
         }
+        
+System.out.println("\n----- Multithreading Test -----");
+
+SavingsAccount sharedAccount =
+        new SavingsAccount("Thread Test", 0, 0);
+
+int threadCount = 10;
+int times = 1000;
+long amount = 1;
+
+Thread[] threads = new Thread[threadCount];
+
+for (int i = 0; i < threadCount; i++) {
+    AccountWorker worker =
+            new AccountWorker(sharedAccount, times, amount);
+
+    threads[i] = new Thread(worker, "Worker-" + (i + 1));
+    threads[i].start();
+}
+
+for (Thread thread : threads) {
+    try {
+        thread.join();
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        System.out.println("Main thread was interrupted.");
+        return;
+    }
+}
+
+long expectedBalance = (long) threadCount * times * amount;
+
+System.out.println("Expected balance: Rs. " + expectedBalance);
+System.out.println("Actual balance: Rs. " + sharedAccount.getBalance());
 
         int choice;
 
