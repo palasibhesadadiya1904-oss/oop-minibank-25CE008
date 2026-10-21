@@ -67,6 +67,38 @@ public class MiniBank {
         System.out.println("Pincode: " + customer1.getAddress().getPincode());
         System.out.println("Cloned Customer ID: " + customer2.getCustomerId());
 
+        System.out.println("\n----- Validator Tests -----");
+
+        System.out.println("Valid mobile: "
+                + Validator.isValidMobile("9876543210"));
+        System.out.println("Invalid mobile: "
+                + Validator.isValidMobile("12345"));
+
+        System.out.println("Valid email: "
+                + Validator.isValidEmail("rahul@gmail.com"));
+        System.out.println("Invalid email: "
+                + Validator.isValidEmail("rahulgmail.com"));
+
+        System.out.println("Valid PAN: "
+                + Validator.isValidPan("ABCDE1234F"));
+        System.out.println("Invalid PAN: "
+                + Validator.isValidPan("ABC123"));
+
+        System.out.println("Valid IFSC: "
+                + Validator.isValidIfsc("SBIN0001234"));
+        System.out.println("Invalid IFSC: "
+                + Validator.isValidIfsc("SBI123"));
+
+        System.out.println("\n----- Command Parser -----");
+
+        Command command = CommandParser.parse("DEPOSIT AC0001 500");
+
+        System.out.println("Type: " + command.type());
+        System.out.println("Account Number: " + command.accountNumber());
+        System.out.println("Amount: " + command.amount());
+
+        System.out.println("\n" + StatementFormatter.buildStatement(acc1));
+
         int choice;
 
         do {
