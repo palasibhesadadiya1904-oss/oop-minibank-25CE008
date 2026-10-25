@@ -20,17 +20,14 @@ public class FixedDepositAccount extends Account {
         return false;
     }
 
-    @Override
-    public boolean withdraw(long amount)
-            throws InsufficientFundsException, InvalidAmountException {
-
-        if (amount <= 0) {
-            throw new InvalidAmountException(
-                    "Withdrawal amount must be greater than zero.");
-        }
-
-        throw new InsufficientFundsException(
-                "Withdrawal is not allowed for a fixed deposit account.",
-                amount);
+  @Override
+public boolean withdraw(long amount) throws InvalidAmountException {
+    if (amount <= 0) {
+        throw new InvalidAmountException(
+            "Withdrawal amount must be positive"
+        );
     }
+
+    return false;
+}
 }

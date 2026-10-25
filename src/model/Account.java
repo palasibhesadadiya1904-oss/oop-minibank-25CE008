@@ -1,63 +1,24 @@
+
 package model;
-import model.annotation.Id;
-import model.annotation.Positive;
-import java.util.Objects;
-import exception.BankException;
+
+import util.WithdrawRule;
 import exception.InsufficientFundsException;
 import exception.InvalidAmountException;
+import java.io.Serializable;
+import java.util.Objects;
 
+public abstract class Account implements Transactable, Serializable {
 
-public abstract class Account implements Transactable, InterestBearing  {
+    private static final long serialVersionUID = 1L;
 
-    @Id
-    private String accountNumber;
-
+    private final int accountNumber;
     private String ownerName;
-
-    @Positive
-    private long balance;
+    protected long balance;
     private boolean active;
 
-    private static long accountCounter = 0;
-    public static void transferSafely(Account from, Account to, long amount)
-        throws BankException {
-
-    Account first = from.accountNumber.compareTo(to.accountNumber) < 0
-            ? from : to;
-
-    Account second = first == from ? to : from;
-
-    synchronized (first) {
-        synchronized (second) {
-            if (amount <= 0) {
-                throw new InvalidAmountException(
-                        "Transfer amount must be greater than zero.");
-            }
-
-            if (from == to) {
-                return;
-            }
-
-            if (!from.canWithdraw(amount)) {
-                throw new InsufficientFundsException(
-                        "Insufficient funds for transfer.",
-                        Math.max(0, amount - from.getBalance()));
-            }
-
-            from.balance -= amount;
-            to.balance += amount;
-        }
-    }
-}
-
-
-    private static String generateAccountNumber() {
-        accountCounter++;
-        return String.format("AC%04d", accountCounter);
-    }
+    private static int accountCounter = 1000;
 
     public Account(String ownerName, long balance) {
-
         this.accountNumber = generateAccountNumber();
         this.ownerName = ownerName;
         this.balance = balance;
@@ -67,59 +28,120 @@ public abstract class Account implements Transactable, InterestBearing  {
     public Account(String ownerName) {
         this(ownerName, 0);
     }
-public void transfer(Account to, long amount) throws BankException {
 
-    try {
-        if (to == null) {
-            throw new BankException("Destination account not found.");
+    private static synchronized int generateAccountNumber() {
+        return ++accountCounter;
+    }
+
+    @Override
+    public synchronized void deposit(long amount)
+            throws InvalidAmountException {
+
+        if (amount <= 0) {
+            throw new InvalidAmountException(
+                    "Deposit amount must be positive");
         }
 
-        withdraw(amount);
-        to.deposit(amount);
-
-    } catch (BankException e) {
-        throw e;
-
-    } finally {
-        System.out.println("Transfer operation completed.");
-    }
-}
-    public abstract double interestRate();
-
-    public abstract boolean canWithdraw(long amount);
-
-   @Override
-public synchronized void deposit(long amount) throws InvalidAmountException {
-    if (amount <= 0) {
-        throw new InvalidAmountException(
-                "Deposit amount must be greater than zero.");
+        balance += amount;
     }
 
-    balance += amount;
-}
+    @Override
+    public synchronized boolean withdraw(long amount)
+            throws InvalidAmountException {
 
-@Override
-public   synchronized  boolean withdraw(long amount)
-        throws InsufficientFundsException, InvalidAmountException {
+        if (amount <= 0) {
+            throw new InvalidAmountException(
+                    "Withdrawal amount must be positive");
+        }
 
-    if (amount <= 0) {
-        throw new InvalidAmountException(
-                "Withdrawal amount must be greater than zero.");
+        if (!active || !canWithdraw(amount) || amount > balance) {
+            return false;
+        }
+
+        balance -= amount;
+        return true;
     }
 
-    if (!canWithdraw(amount)) {
-        long shortfall = amount - balance;
+    public synchronized void transfer(Account to, long amount)
+            throws InsufficientFundsException, InvalidAmountException {
 
-        throw new InsufficientFundsException(
-                "Insufficient funds. Required amount: Rs. " + amount,
-                Math.max(0, shortfall));
+        if (to == null) {
+            throw new IllegalArgumentException(
+                    "Destination account cannot be null");
+        }
+
+        if (to == this) {
+            throw new IllegalArgumentException(
+                    "Cannot transfer to the same account");
+        }
+
+        if (!withdraw(amount)) {
+            throw new InsufficientFundsException(
+                    "Withdrawal failed", amount);
+        }
+
+        try {
+            to.deposit(amount);
+        } catch (InvalidAmountException e) {
+            try {
+                deposit(amount);
+            } catch (InvalidAmountException ignored) {
+            }
+
+            throw e;
+        }
     }
 
-    balance -= amount;
-    return true;
-} 
+    public static void transferSafely(
+            Account from, Account to, long amount)
+            throws InsufficientFundsException, InvalidAmountException {
 
-    public String getAccountNumber() {
+        if (from == null || to == null) {
+            throw new IllegalArgumentException(
+                    "Accounts cannot be null");
+        }
+
+        if (from == to) {
+            throw new IllegalArgumentException(
+                    "Cannot transfer to the same account");
+        }
+
+        if (amount <= 0) {
+            throw new InvalidAmountException(
+                    "Transfer amount must be positive");
+        }
+
+        Account first =
+                from.accountNumber < to.accountNumber ? from : to;
+
+        Account second = first == from ? to : from;
+
+        synchronized (first) {
+            synchronized (second) {
+
+                if (!from.active) {
+                    throw new InsufficientFundsException(
+                            "Source account is inactive", amount);
+                }
+
+                if (!from.canWithdraw(amount)) {
+                    throw new InsufficientFundsException(
+                            "Withdrawal not allowed", amount);
+                }
+
+                if (amount > from.balance) {
+                    throw new InsufficientFundsException(
+                            "Insufficient balance",
+                            amount - from.balance);
+                }
+
+                from.balance -= amount;
+                to.balance += amount;
+            }
+        }
+    }
+
+    public int getAccountNumber() {
         return accountNumber;
     }
 
@@ -127,7 +149,11 @@ public   synchronized  boolean withdraw(long amount)
         return ownerName;
     }
 
-    public long getBalance() {
+    public void setOwnerName(String ownerName) {
+        this.ownerName = ownerName;
+    }
+
+    public synchronized long getBalance() {
         return balance;
     }
 
@@ -135,25 +161,40 @@ public   synchronized  boolean withdraw(long amount)
         return active;
     }
 
-    @Override
-    public String toString() {
-        return "Account Number: " + accountNumber
-                + ", Owner: " + ownerName
-                + ", Balance: Rs. " + balance;
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public abstract double interestRate();
+
+    public abstract boolean canWithdraw(long amount);
+
+    public WithdrawRule getWithdrawRule() {
+        return (account, amount) -> account.canWithdraw(amount);
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
+    public String toString() {
+        return "Account{" +
+                "accountNumber=" + accountNumber +
+                ", ownerName='" + ownerName + '\'' +
+                ", balance=" + balance +
+                ", active=" + active +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
             return true;
         }
 
-        if (!(o instanceof Account)) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
 
-        Account other = (Account) o;
-        return accountNumber.equals(other.accountNumber);
+        Account account = (Account) obj;
+        return accountNumber == account.accountNumber;
     }
 
     @Override
@@ -161,4 +202,3 @@ public   synchronized  boolean withdraw(long amount)
         return Objects.hash(accountNumber);
     }
 }
-

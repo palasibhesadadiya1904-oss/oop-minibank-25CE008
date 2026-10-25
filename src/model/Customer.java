@@ -1,30 +1,32 @@
+
 package model;
-public class Customer implements Cloneable {
+
+import java.io.Serializable;
+
+public class Customer implements Cloneable, Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private String name;
     private String email;
     private String mobile;
-    private final String customerId;
+    private final int customerId;
     private Address address;
 
-    private static long customerCounter = 100;
-
-    private static String generateCustomerId() {
-        customerCounter++;
-        return "CUST" + customerCounter;
-    }
+    private static int customerCounter = 100;
 
     public Customer(String name, String email, String mobile) {
-        this(name, email, mobile, new Address("", "", ""));
+        this(name, email, mobile, null);
     }
 
-    public Customer(String name, String email, String mobile,
-                    Address address) {
+    public Customer(
+            String name, String email, String mobile, Address address) {
+
+        this.customerId = ++customerCounter;
         this.name = name;
         this.email = email;
         this.mobile = mobile;
         this.address = address;
-        this.customerId = generateCustomerId();
     }
 
     public String getName() {
@@ -39,12 +41,28 @@ public class Customer implements Cloneable {
         return mobile;
     }
 
-    public String getCustomerId() {
+    public int getCustomerId() {
         return customerId;
     }
 
     public Address getAddress() {
         return address;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setMobile(String mobile) {
+        this.mobile = mobile;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
     }
 
     @Override
@@ -56,7 +74,21 @@ public class Customer implements Cloneable {
         }
     }
 
-    public static class Address {
+    @Override
+    public String toString() {
+        return "Customer{" +
+                "customerId=" + customerId +
+                ", name='" + name + '\'' +
+                ", email='" + email + '\'' +
+                ", mobile='" + mobile + '\'' +
+                ", address=" + address +
+                '}';
+    }
+
+    public static class Address implements Serializable {
+
+        private static final long serialVersionUID = 1L;
+
         private String line;
         private String city;
         private String pincode;
@@ -77,6 +109,27 @@ public class Customer implements Cloneable {
 
         public String getPincode() {
             return pincode;
+        }
+
+        public void setLine(String line) {
+            this.line = line;
+        }
+
+        public void setCity(String city) {
+            this.city = city;
+        }
+
+        public void setPincode(String pincode) {
+            this.pincode = pincode;
+        }
+
+        @Override
+        public String toString() {
+            return "Address{" +
+                    "line='" + line + '\'' +
+                    ", city='" + city + '\'' +
+                    ", pincode='" + pincode + '\'' +
+                    '}';
         }
     }
 }

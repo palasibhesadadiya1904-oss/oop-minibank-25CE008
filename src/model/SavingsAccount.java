@@ -23,10 +23,9 @@ public class SavingsAccount extends Account implements Premium {
         return getBalance() - amount >= minBalance;
     }
 
-    @Override
-    public boolean withdraw(long amount)
-            throws InsufficientFundsException, InvalidAmountException {
-
-        return super.withdraw(amount);
-    }
+    
+@Override
+public boolean withdraw(long amount) throws InvalidAmountException {
+    return super.withdraw(amount);
+}
 }

@@ -1,0 +1,5 @@
+out/
+data/
+logs/
+reports/
+*.class
