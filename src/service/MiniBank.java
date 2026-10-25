@@ -8,7 +8,7 @@ import model.FixedDepositAccount;
 import util.StatePersister;
 import util.TransactionLog;
 import util.ReportGenerator;
-
+import util.AccountStore;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,8 +28,36 @@ public class MiniBank {
         TRANSFER,
         EXIT
     }
+    
+private static void collectionsTest() {
+
+    AccountStore store = new AccountStore();
+
+    store.add(new SavingsAccount("Rahul", 1000, 500));
+    store.add(new CurrentAccount("Priya", 0, 1000));
+    store.add(new FixedDepositAccount("Amit", 2000));
+
+    store.addTransaction("DEPOSIT 1000");
+    store.addTransaction("WITHDRAW 200");
+
+    System.out.println("\nAccounts Sorted by Balance:");
+
+    for (Account account : store.sortedByBalance()) {
+        System.out.println(account);
+    }
+
+    System.out.println("\nAccount Count: " + store.size());
+
+    System.out.println("\nTransaction History:");
+
+    for (String transaction : store.getTransactionHistory()) {
+        System.out.println(transaction);
+    }
+}
+
 
     public static void main(String[] args) {
+        collectionsTest();
 
         Scanner sc = new Scanner(System.in);
 
