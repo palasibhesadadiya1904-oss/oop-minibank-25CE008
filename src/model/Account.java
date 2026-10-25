@@ -1,6 +1,6 @@
 
 package model;
-
+import model.annotation.Id;
 import util.WithdrawRule;
 import exception.InsufficientFundsException;
 import exception.InvalidAmountException;
@@ -12,6 +12,7 @@ public abstract class Account
 
     private static final long serialVersionUID = 1L;
 
+   @Id
     private final int accountNumber;
     private String ownerName;
     protected long balance;
